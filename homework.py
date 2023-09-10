@@ -31,7 +31,7 @@ HOMEWORK_VERDICTS = {
 
 
 def check_tokens():
-    '''Проверяет доступность переменных окружения.'''
+    """Проверяет доступность переменных окружения."""
     token_dict = {
         'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
         'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
@@ -45,7 +45,7 @@ def check_tokens():
 
 
 def send_message(bot: telegram.Bot, text: str):
-    '''Отправляет сообщение в Telegram чат.'''
+    """Отправляет сообщение в Telegram чат."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, text)
     except Exception as error:
@@ -55,7 +55,7 @@ def send_message(bot: telegram.Bot, text: str):
 
 
 def get_api_answer(timestamp):
-    '''Длает запрос к единственному эндпоинту API-сервиса.'''
+    """Длает запрос к единственному эндпоинту API-сервиса."""
     payload = {'from_date': timestamp}
     try:
         response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
@@ -68,7 +68,7 @@ def get_api_answer(timestamp):
 
 
 def check_response(response):
-    '''Проверяет json'''
+    """Проверяет на совпадение с документацией."""
     if type(response) != dict:
         raise TypeError
     elif not ('homeworks' in response and 'current_date' in response):
@@ -81,8 +81,9 @@ def check_response(response):
 
 
 def parse_status(homework):
-    '''Извлекает из информации о конкретной домашней
-    работе статус этой работы.'''
+    """Извлекает из информации о конкретной домашней
+    работе статус этой работы.
+    """
     try:
         homework_name = homework['homework_name']
         verdict = HOMEWORK_VERDICTS[homework['status']]
