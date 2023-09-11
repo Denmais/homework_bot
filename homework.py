@@ -5,6 +5,7 @@ import time
 from dotenv import load_dotenv
 import logging
 from urllib.error import HTTPError
+from http import HTTPStatus
 from exceptions import TokenNotExistsError
 
 
@@ -21,6 +22,7 @@ TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
+TIME_CONST_PERIOD_ONE_DAY = 60 * 60 * 24
 
 
 HOMEWORK_VERDICTS = {
@@ -37,10 +39,10 @@ def check_tokens():
         'TELEGRAM_TOKEN': TELEGRAM_TOKEN,
         'TELEGRAM_CHAT_ID': TELEGRAM_CHAT_ID
     }
-    for i, j in token_dict.items():
-        if j is None:
+    for token_name, token in token_dict.items():
+        if token is None:
             logging.critical(f'Отсутствие обязательных '
-                             f'переменных окружения: {i}.')
+                             f'переменных окружения: {token_name}.')
             raise TokenNotExistsError
 
 
@@ -61,7 +63,7 @@ def get_api_answer(timestamp):
         response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
     except requests.RequestException:
         logging.error('Не удалось получить ответ API.')
-    if response.status_code != 200:
+    if response.status_code != HTTPStatus.OK:
         logging.error(f'Ошибка {response.status_code}')
         raise HTTPError
     return response.json()
@@ -69,12 +71,12 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """Проверяет на совпадение с документацией."""
-    if type(response) != dict:
+    if not isinstance(response, dict):
         raise TypeError
     elif not ('homeworks' in response and 'current_date' in response):
         logging.error('Подходящие ключи не найдены!')
         raise KeyError
-    elif type(response.get('homeworks')) != list:
+    elif not isinstance(response.get('homeworks'), list):
         logging.error('Неподходящий формат данных.')
         raise TypeError
     return True
@@ -99,18 +101,18 @@ def main():
     timestamp = int(time.time())
     while True:
         try:
-            response = get_api_answer(timestamp - 60 * 60 * 24)
+            response = get_api_answer(timestamp - TIME_CONST_PERIOD_ONE_DAY)
             check_response(response)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
         else:
             if response.get('homeworks') != []:
+                print('sdf')
                 message = parse_status(response.get('homeworks')[0])
-                print(message)
                 send_message(bot, message)
             else:
                 logging.debug('Нет обновлений.')
-        time.sleep(600)
+        time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
