@@ -107,7 +107,6 @@ def main():
             message = f'Сбой в работе программы: {error}'
         else:
             if response.get('homeworks') != []:
-                print('sdf')
                 message = parse_status(response.get('homeworks')[0])
                 send_message(bot, message)
             else:
