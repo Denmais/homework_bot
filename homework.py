@@ -63,6 +63,7 @@ def get_api_answer(timestamp):
         response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
     except requests.RequestException:
         logging.error('Не удалось получить ответ API.')
+        raise HTTPError
     if response.status_code != HTTPStatus.OK:
         logging.error(f'Ошибка {response.status_code}')
         raise HTTPError
